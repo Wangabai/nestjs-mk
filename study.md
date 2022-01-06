@@ -19,20 +19,8 @@ nest g controller users
 nest g service users
 ```
 一定要按照顺序来，nest会自动创建文件并把各个模块
-```
-PS D:\服务器搭建\blog-server-nestjs\blog-server> nest g module users
-CREATE src/users/users.module.ts (82 bytes)
-UPDATE src/app.module.ts (312 bytes)
-PS D:\服务器搭建\blog-server-nestjs\blog-server> nest g controller users
-CREATE src/users/users.controller.spec.ts (485 bytes)
-CREATE src/users/users.controller.ts (99 bytes)
-UPDATE src/users/users.module.ts (170 bytes)
-PS D:\服务器搭建\blog-server-nestjs\blog-server>
-PS D:\服务器搭建\blog-server-nestjs\blog-server> nest g service users
-CREATE src/users/users.service.spec.ts (453 bytes)
-CREATE src/users/users.service.ts (89 bytes)
-UPDATE src/users/users.module.ts (247 bytes)
-```
+![avatar](https://raw.githubusercontent.com/Wangabai/nestjs-mk/main/1.png)
+
 app.module.ts
 ```
 import { Module } from '@nestjs/common';
@@ -231,3 +219,4 @@ import { User } from './user.entity';
 export class UsersModule {}
 ```
 服务自动重启或者重新启动服务，这样你就可以在你的数据库中看到user表
+
