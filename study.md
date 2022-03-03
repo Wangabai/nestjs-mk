@@ -193,7 +193,7 @@ export class User {
   nickname: string;
 
   @Column()
-  mobile_number: number;
+  mobile_number: string;
 
   @Column()
   email: string;
@@ -230,14 +230,14 @@ npm install class-validator class-transformer
 2. 在user文件夹下创建文件夹dtos，添加文件create-user.dto.ts  
 create-user.dto.ts
 ```
-import { IsEmail, IsString, IsNumber } from 'class-validator';
+import { IsEmail, IsString } from 'class-validator';
 
 export class CreateUserDto {
   @IsString()
   nickname: string;
 
   @IsNumber()
-  mobile_number: number;
+  mobile_number: string;
 
   @IsEmail()
   email: string;
@@ -282,5 +282,62 @@ export class UsersController {
   }
 }
 ```
-5. 在POSTMAN中实验
+5. 在POSTMAN中调用接口测试
 
+![avatar](https://raw.githubusercontent.com/Wangabai/nestjs-mk/main/3.png)
+
+## 3. 连接数据库存储数据
+1. 配置users.service.ts 创建create方法
+
+users.service.ts
+```
+import { Injectable } from '@nestjs/common';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { User } from './user.entity';
+@Injectable()
+export class UsersService {
+  constructor(@InjectRepository(User) private repo: Repository<User>) {}
+
+  create(
+    nickname: string,
+    mobile_number: string,
+    email: string,
+    password: string,
+  ) {
+    const user = this.repo.create({ nickname, mobile_number, email, password });
+
+    return this.repo.save(user);
+  }
+}
+```
+
+2. controller引用
+
+users.controller.ts
+```
+import { Body, Controller, Post } from '@nestjs/common';
+import { CreateUserDto } from './dtos/create-user.dto';
+import { UsersService } from './users.service';
+
+@Controller('auth')
+export class UsersController {
+  constructor(private usersService: UsersService) {}
+
+  @Post('/signup')
+  createUser(@Body() body: CreateUserDto) {
+    console.log(body);
+    this.usersService.create(
+      body.nickname,
+      body.mobile_number,
+      body.email,
+      body.password,
+    );
+  }
+}
+```
+
+3. POSTMAN调用
+
+
+![avatar](https://raw.githubusercontent.com/Wangabai/nestjs-mk/main/3.png)
