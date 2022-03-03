@@ -1,6 +1,6 @@
 <!--
  * @Author: 王鑫
- * @Description: 
+ * @Description: nestjs学习文档
  * @Date: 2022-01-04 15:41:09
 -->
 # 1.创建项目
@@ -60,35 +60,35 @@ npm install @nestjs/typeorm typeorm mysql2
 创建一个文件放在根目录，ormconfig.ts  
 nestjs在运行的时候会先去这个文件
 
-ormconfig.js
+ormconfig.json
 ```
-module.exports = {
-  type: 'mysql',
-  host: 'localhost',
-  port: 3306,
-  username: 'root',
-  password: '123456',
-  database: process.env.NODE_ENV === 'dev' ? 'blog-server' : 'blog-server',
-  entities: ['dist/**/*.entity{.ts,.js}'],
-  synchronize: true,
-};
+{
+  "type": "mysql",
+  "host": "localhost",
+  "port": 3306,
+  "username": "root",
+  "password": "123456",
+  "database": "blog_server",
+  "entities": [
+    "dist/**/*.entity{.ts,.js}"
+  ],
+  "synchronize": true
+}
+
+// 其中synchronize，设置为true，是因为现在是生产环境，项目刚搭建，数据库可能会有更改，如此会方便一点，这个属性的意思是可以同步数据库，如果实例文件里面删除了某个属性，数据库会同步删除，正式环境会很危险，值得注意。 
 ```
 这个是mysql的配置文件，其他的看官网
 
 引入app.module.ts文件
 ```
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
-import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [    
-    ConfigModule.forRoot({
-      isGlobal: true,
-      envFilePath: `.env.${process.env.NODE_ENV}`,
-    }),
     TypeOrmModule.forRoot(),
     UsersModule
   ],
@@ -187,7 +187,7 @@ import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 @Entity()
 export class User {
   @PrimaryGeneratedColumn()
-  id: number;
+  uid: number;
 
   @Column()
   nickname: string;
@@ -202,6 +202,7 @@ export class User {
   password: string;
 }
 ```
+创建一个用户实体
 
 2. 导入users.module.ts
 ```
@@ -219,4 +220,67 @@ import { User } from './user.entity';
 export class UsersModule {}
 ```
 服务自动重启或者重新启动服务，这样你就可以在你的数据库中看到user表
+![avatar](https://raw.githubusercontent.com/Wangabai/nestjs-mk/main/2.png)
+
+## 2. 添加校验
+1. 安装依赖
+```
+npm install class-validator class-transformer
+```
+2. 在user文件夹下创建文件夹dtos，添加文件create-user.dto.ts  
+create-user.dto.ts
+```
+import { IsEmail, IsString, IsNumber } from 'class-validator';
+
+export class CreateUserDto {
+  @IsString()
+  nickname: string;
+
+  @IsNumber()
+  mobile_number: number;
+
+  @IsEmail()
+  email: string;
+
+  @IsString()
+  password: string;
+}
+```
+
+3. 在main.ts中添加白名单
+
+main.ts
+```
+import { NestFactory } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
+import { AppModule } from './app.module';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+    }),
+  );
+  await app.listen(3000);
+}
+bootstrap();
+```
+
+4. 配置接口路由
+
+users.controller.ts
+```
+import { Body, Controller, Post } from '@nestjs/common';
+import { CreateUserDto } from './dtos/create-user.dto';
+
+@Controller('auth')
+export class UsersController {
+  @Post('/signup')
+  createUser(@Body() body: CreateUserDto) {
+    console.log(body);
+  }
+}
+```
+5. 在POSTMAN中实验
 
